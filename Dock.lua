@@ -19,7 +19,8 @@ local SPOTS = {
     right = { "BOTTOMLEFT", "BOTTOMRIGHT", 2, 0 },
     center = { "BOTTOM", "TOP", 0, 4 },
 }
-ns.DOCK_SIDES = { "left", "right", "center" }
+ns.DOCK_SIDES = { "left", "right", "center", "free" }
+ns.DOCK_STYLES = { "classic", "flat" }
 
 local function SUIStyle()
     local sui = _G.SUI
@@ -77,9 +78,27 @@ end
 -- Fenster an die Platte setzen (nur außerhalb des Kampfes aufrufen)
 function Dock:Place(frame)
     local v = ns.DB.view
-    local s = SPOTS[v.dockSide] or SPOTS.left
     frame:ClearAllPoints()
+    if v.dockSide == "free" then
+        -- frei gezogene Position: Abstand der linken unteren Ecke zur Platte
+        frame:SetPoint("BOTTOMLEFT", _G.Classic_ActionBarPlate, "BOTTOMLEFT", v.dockX or 0, v.dockY or 0)
+        return
+    end
+    local s = SPOTS[v.dockSide] or SPOTS.left
     frame:SetPoint(s[1], _G.Classic_ActionBarPlate, s[2], s[3] + (v.dockX or 0), s[4] + (v.dockY or 0))
+end
+
+-- Nach dem Ziehen: Position relativ zur Leiste merken, damit sie am Artwork "klebt"
+function Dock:SaveFree(frame)
+    local plate = _G.Classic_ActionBarPlate
+    local fl, fb, pl, pb = frame:GetLeft(), frame:GetBottom(), plate:GetLeft(), plate:GetBottom()
+    if not (fl and fb and pl and pb) then return end
+    local fs, ps = frame:GetEffectiveScale(), plate:GetEffectiveScale()
+    local v = ns.DB.view
+    v.dockSide = "free"
+    v.dockX = math.floor((fl * fs - pl * ps) / fs + 0.5)
+    v.dockY = math.floor((fb * fs - pb * ps) / fs + 0.5)
+    Dock:Place(frame)
 end
 
 -- Classic-Hintergrund ein-/ausblenden
@@ -87,17 +106,29 @@ function Dock:Skin(frame, on)
     if on and not frame.dockBG then
         frame.dockBG = frame:CreateTexture(nil, "BACKGROUND", nil, -1)
         frame.dockBG:SetAllPoints(frame)
-        frame.dockBG:SetTexture(CLASSIC_BG)
-        frame.dockBG:SetTexCoord(unpack(CLASSIC_TC))
         -- leichte Abdunklung für gut lesbaren Text auf dem Artwork
         frame.dockShade = frame:CreateTexture(nil, "BACKGROUND", nil, 0)
         frame.dockShade:SetAllPoints(frame)
-        frame.dockShade:SetColorTexture(0, 0, 0, 0.35)
     end
-    if frame.dockShade then frame.dockShade:SetShown(on) end
+    if frame.dockShade then
+        local sh = math.max(0, math.min(80, ns.DB.view.dockShade or 35)) / 100
+        frame.dockShade:SetColorTexture(0, 0, 0, sh)
+        frame.dockShade:SetShown(on)
+    end
     if frame.dockBG then
         if on then
-            frame.dockBG:SetVertexColor(ArtColor())
+            local v = ns.DB.view
+            local r, g, b = ArtColor()
+            if v.dockStyle == "flat" then
+                frame.dockBG:SetTexCoord(0, 1, 0, 1)
+                frame.dockBG:SetColorTexture(r * 0.45, g * 0.45, b * 0.45, 1)
+                frame.dockBG:SetVertexColor(1, 1, 1, 1)
+            else
+                frame.dockBG:SetTexture(CLASSIC_BG)
+                frame.dockBG:SetTexCoord(unpack(CLASSIC_TC))
+                frame.dockBG:SetVertexColor(r, g, b, 1)
+            end
+            frame.dockBG:SetAlpha(math.max(0, math.min(100, v.dockAlpha or 100)) / 100)
             frame.dockBG:Show()
         else
             frame.dockBG:Hide()
@@ -111,7 +142,7 @@ function Dock:Sync()
     if InCombatLockdown() or not ns.UI then return end
     local v = ns.DB.view
     local sig = table.concat({ tostring(Dock:IsActive()), tostring(Dock:IsSkinned()), tostring(v.dockSide),
-        tostring(v.dockX), tostring(v.dockY), tostring(SUIStyle()) }, "|")
+        tostring(v.dockX), tostring(v.dockY), tostring(SUIStyle()), tostring(v.dockStyle), tostring(v.dockAlpha), tostring(v.dockShade), tostring(v.dockBorder) }, "|")
     if sig ~= lastSig then
         lastSig = sig
         ns.UI:ApplySettings()

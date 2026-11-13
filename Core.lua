@@ -66,9 +66,13 @@ local defaults = {
         gear = true,           -- Zahnrad in der Kopfzeile (öffnet die Optionen)
         dock = true,           -- an SpartanUI (Classic-Artwork) andocken, wenn vorhanden
         dockSkin = true,       -- Classic-Hintergrund von SpartanUI verwenden
-        dockSide = "left",     -- left | right | center
-        dockX = 0,             -- Feinabstimmung
+        dockSide = "left",     -- left | right | center | free (frei gezogen)
+        dockX = 0,             -- Feinabstimmung bzw. Abstand bei "free"
         dockY = 0,
+        dockStyle = "classic", -- classic (Leistentextur) | flat (einfarbig im Theme-Ton)
+        dockAlpha = 100,       -- Deckkraft des Hintergrunds in %
+        dockShade = 35,        -- Abdunklung in %
+        dockBorder = false,    -- eigenen Rahmen auch im angedockten Zustand zeigen
         rows = "auto",         -- auto | all | missing
         sort = "missing",      -- missing | name | class
     },
@@ -797,11 +801,15 @@ SlashCmdList["GROUPBUFFSSUI"] = function(msg)
         elseif key == "on" then v.dock = true
         elseif key == "off" then v.dock = false
         elseif key == "skin" then v.dockSkin = not v.dockSkin
-        elseif key == "left" or key == "right" or key == "center" then v.dockSide = key
-        elseif key == "x" and tonumber(val) then v.dockX = math.max(-300, math.min(300, math.floor(tonumber(val))))
-        elseif key == "y" and tonumber(val) then v.dockY = math.max(-300, math.min(300, math.floor(tonumber(val))))
+        elseif key == "left" or key == "right" or key == "center" or key == "free" then v.dockSide = key
+        elseif key == "x" and tonumber(val) then v.dockX = math.max(-2000, math.min(2000, math.floor(tonumber(val))))
+        elseif key == "y" and tonumber(val) then v.dockY = math.max(-2000, math.min(2000, math.floor(tonumber(val))))
+        elseif key == "style" then v.dockStyle = (v.dockStyle == "flat") and "classic" or "flat"
+        elseif key == "alpha" and tonumber(val) then v.dockAlpha = math.max(0, math.min(100, math.floor(tonumber(val))))
+        elseif key == "shade" and tonumber(val) then v.dockShade = math.max(0, math.min(80, math.floor(tonumber(val))))
+        elseif key == "border" then v.dockBorder = not v.dockBorder
         elseif key == "reset" then
-            for _, k in ipairs({ "dock", "dockSkin", "dockSide", "dockX", "dockY" }) do v[k] = ns.DefaultView[k] end
+            for _, k in ipairs({ "dock", "dockSkin", "dockSide", "dockX", "dockY", "dockStyle", "dockAlpha", "dockShade", "dockBorder" }) do v[k] = ns.DefaultView[k] end
         else
             for _, line in ipairs(L.DOCK.HELP) do print(line) end
             return

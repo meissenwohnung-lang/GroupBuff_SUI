@@ -21,7 +21,7 @@ local CONS_KEYS = { "flask", "food", "armor" }
 local MAX_CUSTOM_ROWS = 3
 
 local panel, viewPanel, dockPanel
-local dockChecks, dockValues, dockSide, dockStatus = {}, {}, nil, nil
+local dockChecks, dockValues, dockSide, dockStatus, dockStyle = {}, {}, nil, nil, nil
 local viewChecks, viewValues, viewCycle, viewAccent = {}, {}, {}, {}
 local checks, customRows = {}, {}
 local scaleText, warnText, consCatBtn
@@ -427,7 +427,10 @@ end
 ---------------------------------------------------------------------------
 -- Unterseite "SpartanUI-Dock"
 ---------------------------------------------------------------------------
-local DOCK_STEPPERS = { { "dockX", "X" }, { "dockY", "Y" } }
+local DOCK_STEPPERS = {
+    { "dockX", "X", -2000, 2000, 10, " px" }, { "dockY", "Y", -2000, 2000, 10, " px" },
+    { "dockAlpha", "ALPHA", 0, 100, 10, " %" }, { "dockShade", "SHADE", 0, 80, 10, " %" },
+}
 
 local function ApplyDock()
     if InCombatLockdown() then
@@ -442,7 +445,8 @@ function Config:RefreshDock()
     if not dockPanel or not ns.DB then return end
     local v = ns.DB.view
     for key, cb in pairs(dockChecks) do cb:SetChecked(v[key] and true or false) end
-    for _, st in ipairs(DOCK_STEPPERS) do dockValues[st[1]]:SetText((v[st[1]] or 0) .. " px") end
+    for _, st in ipairs(DOCK_STEPPERS) do dockValues[st[1]]:SetText((v[st[1]] or 0) .. st[6]) end
+    dockStyle:SetText(L.DOCK.STYLE_V[v.dockStyle] or tostring(v.dockStyle))
     dockSide:SetText(L.DOCK.SIDE_V[v.dockSide] or v.dockSide)
     local ok = ns.Dock and ns.Dock:Available()
     dockStatus:SetText((ok and "|cff6fe08a" or "|cffffb347") .. (ok and L.DOCK.STATUS_OK or L.DOCK.STATUS_NO) .. "|r")
@@ -451,7 +455,7 @@ end
 BuildDock = function()
     local dp = CreateFrame("Frame", "GroupBuffSUIDockOptions")
     dp.name = L.DOCK.TITLE
-    dp:SetSize(600, 340)
+    dp:SetSize(600, 480)
     dp:Hide()
 
     Label(dp, L.DOCK.HEADLINE, 16, -14, "GameFontNormalLarge")
@@ -459,14 +463,14 @@ BuildDock = function()
     dockStatus:SetWidth(560)
 
     local y = -76
-    for _, key in ipairs({ "dock", "dockSkin" }) do
+    for _, key in ipairs({ "dock", "dockSkin", "dockBorder" }) do
         local cb = CreateFrame("CheckButton", nil, dp, "UICheckButtonTemplate")
         cb:SetSize(26, 26)
         cb:SetPoint("TOPLEFT", 12, y)
         y = y - 28
         local fs = cb:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         fs:SetPoint("LEFT", cb, "RIGHT", 4, 0)
-        fs:SetText(key == "dock" and L.DOCK.DOCK or L.DOCK.SKIN)
+        fs:SetText(key == "dock" and L.DOCK.DOCK or (key == "dockSkin" and L.DOCK.SKIN or L.DOCK.BORDER))
         cb:SetScript("OnClick", function(self)
             ns.DB.view[key] = self:GetChecked() and true or false
             ApplyDock(); Config:RefreshDock()
@@ -482,19 +486,27 @@ BuildDock = function()
         v.dockSide = ns.DOCK_SIDES[idx % #ns.DOCK_SIDES + 1]
         ApplyDock(); Config:RefreshDock()
     end)
-    y = y - 40
+    y = y - 34
+
+    Label(dp, L.DOCK.STYLE, 16, y - 10)
+    dockStyle = Button(dp, "", 230, 22, 220, y - 6, function()
+        local v = ns.DB.view
+        v.dockStyle = (v.dockStyle == "flat") and "classic" or "flat"
+        ApplyDock(); Config:RefreshDock()
+    end)
+    y = y - 34
 
     for _, st in ipairs(DOCK_STEPPERS) do
-        local key = st[1]
-        dockValues[key] = Stepper(dp, y, L.DOCK[st[2]], 10,
+        local key, lo, hi, step = st[1], st[3], st[4], st[5]
+        dockValues[key] = Stepper(dp, y, L.DOCK[st[2]], step,
             function()
                 local v = ns.DB.view
-                v[key] = math.max(-300, (v[key] or 0) - 10)
+                v[key] = math.max(lo, (v[key] or 0) - step)
                 ApplyDock(); Config:RefreshDock()
             end,
             function()
                 local v = ns.DB.view
-                v[key] = math.min(300, (v[key] or 0) + 10)
+                v[key] = math.min(hi, (v[key] or 0) + step)
                 ApplyDock(); Config:RefreshDock()
             end)
         y = y - 32
@@ -502,12 +514,12 @@ BuildDock = function()
 
     Button(dp, L.DOCK.RESET, 200, 24, 16, y - 8, function()
         if InCombatLockdown() then print("|cff33ff99GroupBuff SUI|r:", L.COMBAT_NOTE); return end
-        for _, k in ipairs({ "dock", "dockSkin", "dockSide", "dockX", "dockY" }) do ns.DB.view[k] = ns.DefaultView[k] end
+        for _, k in ipairs({ "dock", "dockSkin", "dockSide", "dockX", "dockY", "dockStyle", "dockAlpha", "dockShade", "dockBorder" }) do ns.DB.view[k] = ns.DefaultView[k] end
         ApplyDock(); Config:RefreshDock()
     end)
     local hint = Label(dp, L.DOCK.HINT, 16, y - 44, "GameFontDisableSmall")
     hint:SetWidth(560)
-    Label(dp, "GroupBuff SUI by " .. ns.AUTHOR .. "  ·  " .. ns.CREDIT_LINE, 16, -318, "GameFontDisableSmall")
+    Label(dp, "GroupBuff SUI by " .. ns.AUTHOR .. "  ·  " .. ns.CREDIT_LINE, 16, -458, "GameFontDisableSmall")
 
     dp:SetScript("OnShow", function() Config:RefreshDock() end)
     return dp

@@ -127,13 +127,9 @@ function UI:Create()
     frame:SetBackdropBorderColor(unpack(COL.border))
 
     frame:SetScript("OnDragStart", function(self)
-        if not ns.DB.locked and not InCombatLockdown() and not (ns.Dock and ns.Dock:IsActive()) then self:StartMoving() end
+        if not ns.DB.locked and not InCombatLockdown() then self:StartMoving() end
     end)
-    frame:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        local p, _, rp, x, y = self:GetPoint()
-        ns.DB.point = { p, "UIParent", rp, x, y }
-    end)
+    frame:SetScript("OnDragStop", function(self) UI:StopDrag() end)
 
     -- Kopfleiste mit Goldlinie, Titel, Zähler und Einklapp-Knopf
     frame.head = frame:CreateTexture(nil, "BACKGROUND")
@@ -170,13 +166,9 @@ function UI:Create()
     frame.titleHit:SetScript("OnLeave", function() GameTooltip:Hide() end)
     frame.titleHit:RegisterForDrag("LeftButton")
     frame.titleHit:SetScript("OnDragStart", function()
-        if not ns.DB.locked and not InCombatLockdown() and not (ns.Dock and ns.Dock:IsActive()) then frame:StartMoving() end
+        if not ns.DB.locked and not InCombatLockdown() then frame:StartMoving() end
     end)
-    frame.titleHit:SetScript("OnDragStop", function()
-        frame:StopMovingOrSizing()
-        local p, _, rp, x, y = frame:GetPoint()
-        ns.DB.point = { p, "UIParent", rp, x, y }
-    end)
+    frame.titleHit:SetScript("OnDragStop", function() UI:StopDrag() end)
 
     frame.count = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.count:SetPoint("RIGHT", frame, "TOPRIGHT", -26, -(HEAD / 2))
@@ -347,6 +339,18 @@ function UI:Create()
     UI:ApplySettings()
 end
 
+-- Ziehen beenden: angedockt wird der Abstand zur Leiste gemerkt, sonst die freie Bildschirmposition
+function UI:StopDrag()
+    frame:StopMovingOrSizing()
+    if ns.Dock and ns.Dock:IsActive() then
+        ns.Dock:SaveFree(frame)
+        if ns.Config and ns.Config.RefreshDock then ns.Config:RefreshDock() end
+    else
+        local p, _, rp, x, y = frame:GetPoint()
+        ns.DB.point = { p, "UIParent", rp, x, y }
+    end
+end
+
 -- Ansicht-Optionen anwenden (nur außerhalb des Kampfes aufrufen)
 function UI:ApplyView()
     if not frame then return end
@@ -362,7 +366,7 @@ function UI:ApplyView()
     if ns.Dock then ns.Dock:Skin(frame, skinned) end
     -- mit Classic-Hintergrund: Standardfläche ausblenden, der SpartanUI-Hintergrund scheint durch
     frame:SetBackdropColor(COL.bg[1], COL.bg[2], COL.bg[3], skinned and 0 or a)
-    if skinned then
+    if skinned and not v.dockBorder then
         frame:SetBackdropBorderColor(0, 0, 0, 0.7)
     else
         frame:SetBackdropBorderColor(unpack(COL.border))
