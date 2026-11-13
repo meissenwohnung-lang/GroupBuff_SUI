@@ -786,6 +786,10 @@ SlashCmdList["GROUPBUFFSSUI"] = function(msg)
         key = key:lower()
         if InCombatLockdown() then Print(L.COMBAT_NOTE); return end
         local v = DB.view
+        if key == "debug" then
+            if ns.Dock then ns.Dock:Debug() end
+            return
+        end
         if key == "" or key == "help" then
             Print(ns.Dock and ns.Dock:Available() and L.DOCK.STATUS_OK or L.DOCK.STATUS_NO)
             for _, line in ipairs(L.DOCK.HELP) do print(line) end

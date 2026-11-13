@@ -26,9 +26,32 @@ local function SUIStyle()
     return sui and sui.DB and sui.DB.Artwork and sui.DB.Artwork.Style
 end
 
--- SpartanUI mit Classic-Theme aktiv und Artwork vorhanden?
+-- Classic-Artwork von SpartanUI vorhanden und sichtbar? Maßgeblich ist die Platte selbst,
+-- nicht die Theme-Einstellung (deren Ablage kann je nach SpartanUI-Version abweichen).
 function Dock:Available()
-    return SUIStyle() == "Classic" and _G.Classic_ActionBarPlate ~= nil
+    local plate = _G.Classic_ActionBarPlate
+    if not plate or not plate.IsVisible or not plate:IsVisible() then return false end
+    local style = SUIStyle()
+    return style == nil or style == "Classic"
+end
+
+-- Diagnose für /gbs dock debug
+function Dock:Debug()
+    local function yn(b) return b and "ja" or "nein" end
+    local plate = _G.Classic_ActionBarPlate
+    local p = print
+    p("|cff33ff99GroupBuff SUI|r Dock-Diagnose:")
+    p("  SUI-Objekt: " .. yn(_G.SUI ~= nil))
+    p("  SUI.DB.Artwork.Style: " .. tostring(SUIStyle()))
+    p("  Classic_ActionBarPlate: " .. yn(plate ~= nil) .. (plate and (", sichtbar: " .. yn(plate:IsVisible()) ..
+        string.format(", %.0fx%.0f", plate:GetWidth() or 0, plate:GetHeight() or 0)) or ""))
+    p("  SUI_Art_Classic: " .. yn(_G.SUI_Art_Classic ~= nil) .. (_G.SUI_Art_Classic and (", sichtbar: " .. yn(_G.SUI_Art_Classic:IsVisible())) or ""))
+    p("  Dock verfügbar: " .. yn(Dock:Available()) .. ", aktiv: " .. yn(Dock:IsActive()) .. ", Hintergrund: " .. yn(Dock:IsSkinned()))
+    local f = _G.GroupBuffSUIFrame
+    if f then
+        local pt, rel, rp, x, y = f:GetPoint(1)
+        p(string.format("  Fenster: %s an %s (%s) %.0f/%.0f", tostring(pt), rel and rel.GetName and tostring(rel:GetName()) or "?", tostring(rp), x or 0, y or 0))
+    end
 end
 
 function Dock:IsActive()

@@ -143,7 +143,7 @@ local de = {
             "|cff33ff99GroupBuff SUI|r – /gbs dock:",
             "/gbs dock on|off – Andocken ein/aus; skin – Classic-Hintergrund ein/aus",
             "/gbs dock left|right|center – Position; x <-300..300>, y <-300..300> – Feinabstimmung",
-            "/gbs dock reset – Standard wiederherstellen",
+            "/gbs dock reset – Standard wiederherstellen; debug – Diagnose ausgeben",
         },
     },
 }
@@ -288,7 +288,7 @@ local en = {
             "|cff33ff99GroupBuff SUI|r - /gbs dock:",
             "/gbs dock on|off - docking on/off; skin - Classic background on/off",
             "/gbs dock left|right|center - position; x <-300..300>, y <-300..300> - fine tuning",
-            "/gbs dock reset - restore defaults",
+            "/gbs dock reset - restore defaults; debug - print diagnostics",
         },
     },
 }

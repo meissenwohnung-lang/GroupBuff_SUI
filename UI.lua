@@ -646,7 +646,7 @@ function UI:Render(model)
     end
 
     ---------------------------------------------------------------- Größe und Bereiche platzieren
-    local w = 200
+    local w = 250 -- Titel "GroupBuff SUI by Solomon" ist länger als bei GroupBuffs
     if nBtn > 0 then w = math.max(w, 2 * CX + 8 + nBtn * (ICON + 8)) end
     if shownRows > 0 then w = math.max(w, 2 * CX + NAMEW + nF * CELL + 8) end
     w = math.max(w, infoW + 12)
