@@ -362,9 +362,18 @@ function UI:ApplyView()
     if ns.Dock then ns.Dock:Skin(frame, skinned) end
     -- mit Classic-Hintergrund: Standardfläche ausblenden, der SpartanUI-Hintergrund scheint durch
     frame:SetBackdropColor(COL.bg[1], COL.bg[2], COL.bg[3], skinned and 0 or a)
+    if skinned then
+        frame:SetBackdropBorderColor(0, 0, 0, 0.7)
+    else
+        frame:SetBackdropBorderColor(unpack(COL.border))
+    end
     for _, sec in ipairs({ secA, secB, secC }) do
         if sec then
-            if v.sectionFrames then
+            if v.sectionFrames and skinned then
+                -- auf dem Artwork: keine dunklen Kästen, nur feine Trennlinien
+                sec:SetBackdropColor(0, 0, 0, 0)
+                sec:SetBackdropBorderColor(0, 0, 0, 0.55)
+            elseif v.sectionFrames then
                 sec:SetBackdropColor(0.07, 0.085, 0.11, math.min(0.9, a))
                 sec:SetBackdropBorderColor(0.20, 0.24, 0.32, 1)
             else

@@ -15,8 +15,8 @@ local CLASSIC_TC = { 0.107421875, 0.896484375, 0.25, 0.765625 }
 -- Positionen relativ zur Classic-Aktionsleisten-Platte (1002 x 139).
 -- Die Seitenleisten von SpartanUI liegen bis ~146 px neben der Platte, daher dieser Abstand.
 local SPOTS = {
-    left = { "BOTTOMRIGHT", "BOTTOMLEFT", -146, 0 },
-    right = { "BOTTOMLEFT", "BOTTOMRIGHT", 146, 0 },
+    left = { "BOTTOMRIGHT", "BOTTOMLEFT", -2, 0 },
+    right = { "BOTTOMLEFT", "BOTTOMRIGHT", 2, 0 },
     center = { "BOTTOM", "TOP", 0, 4 },
 }
 ns.DOCK_SIDES = { "left", "right", "center" }
@@ -86,11 +86,15 @@ end
 function Dock:Skin(frame, on)
     if on and not frame.dockBG then
         frame.dockBG = frame:CreateTexture(nil, "BACKGROUND", nil, -1)
-        frame.dockBG:SetPoint("TOPLEFT", 1, -1)
-        frame.dockBG:SetPoint("BOTTOMRIGHT", -1, 1)
+        frame.dockBG:SetAllPoints(frame)
         frame.dockBG:SetTexture(CLASSIC_BG)
         frame.dockBG:SetTexCoord(unpack(CLASSIC_TC))
+        -- leichte Abdunklung für gut lesbaren Text auf dem Artwork
+        frame.dockShade = frame:CreateTexture(nil, "BACKGROUND", nil, 0)
+        frame.dockShade:SetAllPoints(frame)
+        frame.dockShade:SetColorTexture(0, 0, 0, 0.35)
     end
+    if frame.dockShade then frame.dockShade:SetShown(on) end
     if frame.dockBG then
         if on then
             frame.dockBG:SetVertexColor(ArtColor())
