@@ -1,0 +1,18 @@
+## Interface: 16001
+## Title: GroupBuff SUI |cff8a95a5by Solomon|r
+## Author: Solomon
+## X-Credits: Designed for Selo^^
+## Notes: GroupBuffs mit SpartanUI-Dock (Classic). Zeigt Buffs der Gruppe und welchen fehlenden Buff DU geben kannst (Klick = zaubern). Shows group buffs and the missing buffs you can cast.
+## Notes-deDE: Zeigt Buffs der Gruppe und welchen fehlenden Buff DU geben kannst (Klick = zaubern).
+## Version: 0.1.0
+## OptionalDeps: SpartanUI
+## SavedVariables: GroupBuffSUIDB
+## IconTexture: Interface\Icons\Spell_Holy_WordFortitude
+## Category: Raid
+
+Locale.lua
+Data.lua
+UI.lua
+Core.lua
+Dock.lua
+Config.lua

@@ -1,0 +1,7 @@
+package-as: GroupBuff_SUI
+
+ignore:
+  - README.md
+  - README.old.md
+  - LICENSE
+  - .github
